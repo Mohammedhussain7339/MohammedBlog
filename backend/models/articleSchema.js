@@ -8,6 +8,9 @@ const ArticleSchema = new mongoose.Schema({
   author: { type: String },
   subtitle: { type: String },
   content: { type: String },
+  subtitles: [{ type: String }],  // Changed from `subtitle` to `subtitles` (Array)
+  contents: [{ type: String }],  // Changed from `subtitle` to `subtitles` (Array)
+  selectedCategory:{type:String},
   createdAt: { type: Date, default: Date.now },
 });
 

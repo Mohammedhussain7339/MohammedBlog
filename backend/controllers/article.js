@@ -35,12 +35,22 @@ export const createArticle = async (req, res) => {
 };
 
 // Update an article
+const API_URL = "";
+
 export const updateArticle = async (req, res) => {
   try {
-    const updatedArticle = await Article.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedArticle) return res.status(404).json({ message: "Article not found" });
+    const { id } = req.params;
+    const articleData = req.body; // Ensure only body data is passed
+
+    const updatedArticle = await Article.findByIdAndUpdate(id, articleData, { new: true });
+
+    if (!updatedArticle) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+
     res.json(updatedArticle);
   } catch (error) {
+    console.error("Update error:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -55,3 +65,55 @@ export const deleteArticle = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
+export const addNameAndIntro = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { subtitle, content } = req.body;
+
+    if (!subtitle || !content) {
+      return res.status(400).json({ message: "Name and Intro are required." });
+    }
+
+    const article = await Article.findOne({ slug });
+
+    if (!article) {
+      return res.status(404).json({ message: "Article not found." });
+    }
+
+    // Initialize arrays if they don't exist
+    if (!article.subtitles) article.subtitles = [];
+    if (!article.contents) article.contents = [];
+
+    // Append new values
+    article.subtitles.push(subtitle);
+    article.contents.push(content);
+
+    await article.save();
+
+    res.status(200).json({ message: "Name and Intro added successfully!", article });
+  } catch (error) {
+    console.error("Error in addNameAndIntro:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+// Fetch articles by selected category
+export const getArticlesByCategory = async (req, res) => {
+  try {
+    const category = req.params.category.toLowerCase(); // Convert to lowercase
+    const articles = await Article.find({ selectedCategory: { $regex: new RegExp("^" + category + "$", "i") } });
+
+    if (!articles.length) {
+      return res.status(404).json({ message: "No articles found for this category." });
+    }
+
+    res.json(articles);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
